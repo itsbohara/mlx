@@ -6,7 +6,7 @@
 
 using namespace metal;
 
-typedef bfloat bfloat16_t;
+typedef metal::bfloat bfloat16_t;
 inline uint16_t bfloat16_to_uint16(const bfloat16_t x) {
   return as_type<uint16_t>(x);
 }

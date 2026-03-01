@@ -67,7 +67,7 @@ instantiate_default_limit(int64_t);
 
 instantiate_float_limit(half);
 instantiate_float_limit(float);
-instantiate_float_limit(bfloat16_t);
+instantiate_float_limit(metal::bfloat);
 
 template <>
 struct Limits<bool> {
@@ -147,13 +147,13 @@ METAL_FUNC IdxT elem_to_loc_3(uint3 elem, constant const int64_t strides[3]) {
 // Multiple Arrays with generic dims
 
 template <typename IdxT = int64_t>
-METAL_FUNC vec<IdxT, 2> elem_to_loc_2_nd(
+METAL_FUNC metal::vec<IdxT, 2> elem_to_loc_2_nd(
     uint3 elem,
     constant const int* shape,
     constant const int64_t* a_strides,
     constant const int64_t* b_strides,
     int ndim) {
-  vec<IdxT, 2> loc = {
+  metal::vec<IdxT, 2> loc = {
       IdxT(
           elem.x * IdxT(a_strides[ndim - 1]) +
           IdxT(elem.y) * IdxT(a_strides[ndim - 2])),
@@ -170,14 +170,14 @@ METAL_FUNC vec<IdxT, 2> elem_to_loc_2_nd(
 }
 
 template <typename IdxT = int64_t>
-METAL_FUNC vec<IdxT, 3> elem_to_loc_3_nd(
+METAL_FUNC metal::vec<IdxT, 3> elem_to_loc_3_nd(
     uint3 elem,
     constant const int* shape,
     constant const int64_t* a_strides,
     constant const int64_t* b_strides,
     constant const int64_t* c_strides,
     int ndim) {
-  vec<IdxT, 3> loc = {
+  metal::vec<IdxT, 3> loc = {
       IdxT(elem.x * IdxT(a_strides[ndim - 1])) +
           IdxT(elem.y * IdxT(a_strides[ndim - 2])),
       IdxT(elem.x * IdxT(b_strides[ndim - 1])) +
@@ -321,16 +321,16 @@ inline float log1p(float x) {
   return x * (metal::log(xp1) / (xp1 - 1.0f));
 }
 
-inline bfloat16_t log1p(bfloat16_t x) {
+inline metal::bfloat log1p(metal::bfloat x) {
   float xp1 = 1.0f + static_cast<float>(x);
   if (xp1 == Limits<float>::max) {
-    return Limits<bfloat16_t>::max;
+    return Limits<metal::bfloat>::max;
   }
   if (xp1 == 1.0f) {
     return x;
   }
 
-  return bfloat16_t(x * (metal::log(xp1) / (xp1 - 1.0f)));
+  return metal::bfloat(x * (metal::log(xp1) / (xp1 - 1.0f)));
 }
 
 inline complex64_t log1p(complex64_t in) {

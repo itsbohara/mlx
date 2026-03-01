@@ -6,6 +6,8 @@
 
 using namespace metal;
 
+typedef metal::bfloat bfloat16_t;
+
 struct complex64_t;
 
 template <typename T>
