@@ -147,21 +147,13 @@ METAL_FUNC IdxT elem_to_loc_3(uint3 elem, constant const int64_t strides[3]) {
 // Multiple Arrays with generic dims
 
 template <typename IdxT = int64_t>
-#if __METAL_VERSION__ >= 32024000
-#define MLX_VEC2(T) metal::vec<T, 2>
-#define MLX_VEC3(T) metal::vec<T, 3>
-#else
-#define MLX_VEC2(T) vec<T, 2>
-#define MLX_VEC3(T) vec<T, 3>
-#endif
-
-METAL_FUNC MLX_VEC2(IdxT) elem_to_loc_2_nd(
+METAL_FUNC vec<IdxT, 2> elem_to_loc_2_nd(
     uint3 elem,
     constant const int* shape,
     constant const int64_t* a_strides,
     constant const int64_t* b_strides,
     int ndim) {
-  MLX_VEC2(IdxT) loc = {
+  vec<IdxT, 2> loc = {
       IdxT(
           elem.x * IdxT(a_strides[ndim - 1]) +
           IdxT(elem.y) * IdxT(a_strides[ndim - 2])),
@@ -178,14 +170,14 @@ METAL_FUNC MLX_VEC2(IdxT) elem_to_loc_2_nd(
 }
 
 template <typename IdxT = int64_t>
-METAL_FUNC MLX_VEC3(IdxT) elem_to_loc_3_nd(
+METAL_FUNC vec<IdxT, 3> elem_to_loc_3_nd(
     uint3 elem,
     constant const int* shape,
     constant const int64_t* a_strides,
     constant const int64_t* b_strides,
     constant const int64_t* c_strides,
     int ndim) {
-  MLX_VEC3(IdxT) loc = {
+  vec<IdxT, 3> loc = {
       IdxT(elem.x * IdxT(a_strides[ndim - 1])) +
           IdxT(elem.y * IdxT(a_strides[ndim - 2])),
       IdxT(elem.x * IdxT(b_strides[ndim - 1])) +
