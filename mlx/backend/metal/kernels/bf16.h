@@ -6,7 +6,11 @@
 
 using namespace metal;
 
+#if __METAL_VERSION__ >= 32024000
 typedef metal::bfloat bfloat16_t;
+#else
+typedef bfloat bfloat16_t;
+#endif
 inline uint16_t bfloat16_to_uint16(const bfloat16_t x) {
   return as_type<uint16_t>(x);
 }

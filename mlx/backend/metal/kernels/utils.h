@@ -67,7 +67,7 @@ instantiate_default_limit(int64_t);
 
 instantiate_float_limit(half);
 instantiate_float_limit(float);
-instantiate_float_limit(metal::bfloat);
+instantiate_float_limit(bfloat16_t);
 
 template <>
 struct Limits<bool> {
@@ -147,13 +147,21 @@ METAL_FUNC IdxT elem_to_loc_3(uint3 elem, constant const int64_t strides[3]) {
 // Multiple Arrays with generic dims
 
 template <typename IdxT = int64_t>
-METAL_FUNC metal::vec<IdxT, 2> elem_to_loc_2_nd(
+#if __METAL_VERSION__ >= 32024000
+#define MLX_VEC2(T) metal::vec<T, 2>
+#define MLX_VEC3(T) metal::vec<T, 3>
+#else
+#define MLX_VEC2(T) vec<T, 2>
+#define MLX_VEC3(T) vec<T, 3>
+#endif
+
+METAL_FUNC MLX_VEC2(IdxT) elem_to_loc_2_nd(
     uint3 elem,
     constant const int* shape,
     constant const int64_t* a_strides,
     constant const int64_t* b_strides,
     int ndim) {
-  metal::vec<IdxT, 2> loc = {
+  MLX_VEC2(IdxT) loc = {
       IdxT(
           elem.x * IdxT(a_strides[ndim - 1]) +
           IdxT(elem.y) * IdxT(a_strides[ndim - 2])),
@@ -170,14 +178,14 @@ METAL_FUNC metal::vec<IdxT, 2> elem_to_loc_2_nd(
 }
 
 template <typename IdxT = int64_t>
-METAL_FUNC metal::vec<IdxT, 3> elem_to_loc_3_nd(
+METAL_FUNC MLX_VEC3(IdxT) elem_to_loc_3_nd(
     uint3 elem,
     constant const int* shape,
     constant const int64_t* a_strides,
     constant const int64_t* b_strides,
     constant const int64_t* c_strides,
     int ndim) {
-  metal::vec<IdxT, 3> loc = {
+  MLX_VEC3(IdxT) loc = {
       IdxT(elem.x * IdxT(a_strides[ndim - 1])) +
           IdxT(elem.y * IdxT(a_strides[ndim - 2])),
       IdxT(elem.x * IdxT(b_strides[ndim - 1])) +
@@ -321,16 +329,16 @@ inline float log1p(float x) {
   return x * (metal::log(xp1) / (xp1 - 1.0f));
 }
 
-inline metal::bfloat log1p(metal::bfloat x) {
+inline bfloat16_t log1p(bfloat16_t x) {
   float xp1 = 1.0f + static_cast<float>(x);
   if (xp1 == Limits<float>::max) {
-    return Limits<metal::bfloat>::max;
+    return Limits<bfloat16_t>::max;
   }
   if (xp1 == 1.0f) {
     return x;
   }
 
-  return metal::bfloat(x * (metal::log(xp1) / (xp1 - 1.0f)));
+  return bfloat16_t(x * (metal::log(xp1) / (xp1 - 1.0f)));
 }
 
 inline complex64_t log1p(complex64_t in) {
