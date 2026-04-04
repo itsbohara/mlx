@@ -26,10 +26,13 @@ target_sources(
           ${CMAKE_CURRENT_SOURCE_DIR}/distributed.cu
           ${CMAKE_CURRENT_SOURCE_DIR}/eval.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/event.cu
+          ${CMAKE_CURRENT_SOURCE_DIR}/fft.cu
           ${CMAKE_CURRENT_SOURCE_DIR}/fence.cpp
+          ${CMAKE_CURRENT_SOURCE_DIR}/gemms/block_mask.cu
           ${CMAKE_CURRENT_SOURCE_DIR}/gemms/gemv.cu
           ${CMAKE_CURRENT_SOURCE_DIR}/gemms/cublas_gemm.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/gemms/grouped_gemm_unaligned.cu
+          ${CMAKE_CURRENT_SOURCE_DIR}/hadamard.cu
           ${CMAKE_CURRENT_SOURCE_DIR}/jit_module.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/indexing.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/kernel_utils.cu
@@ -56,7 +59,6 @@ target_sources(
           ${CMAKE_CURRENT_SOURCE_DIR}/utils.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/quantized/affine_quantize.cu
           ${CMAKE_CURRENT_SOURCE_DIR}/quantized/fp_quantize.cu
-          ${CMAKE_CURRENT_SOURCE_DIR}/quantized/qmv.cu
           ${CMAKE_CURRENT_SOURCE_DIR}/quantized/quantized.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/quantized/qqmm.cpp
           ${CMAKE_CURRENT_SOURCE_DIR}/quantized/qqmm_utils.cu
@@ -117,9 +119,15 @@ target_compile_options(mlx
 target_compile_options(
   mlx PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:--expt-relaxed-constexpr>")
 
-# Required for generating optimized CUTLASS code.
-target_compile_options(
-  mlx PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fno-strict-aliasing>")
+if(MSVC)
+  # Ignore warnings from CUTLASS.
+  target_compile_options(
+    mlx PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-Xcudafe="--diag_suppress=2908">)
+else()
+  # Required for generating optimized CUTLASS code.
+  target_compile_options(
+    mlx PRIVATE "$<$<COMPILE_LANGUAGE:CUDA>:-Xcompiler=-fno-strict-aliasing>")
+endif()
 
 # Suppress nvcc warnings on C++ headers.
 target_compile_options(
@@ -244,6 +252,9 @@ target_include_directories(mlx PRIVATE ${CUDAToolkit_INCLUDE_DIRS})
 
 # Use cublasLt.
 target_link_libraries(mlx PRIVATE CUDA::cublasLt)
+
+# Use cuFFT.
+target_link_libraries(mlx PRIVATE CUDA::cufft)
 
 # Use NVRTC and driver APIs.
 target_link_libraries(mlx PRIVATE CUDA::nvrtc CUDA::cuda_driver)
